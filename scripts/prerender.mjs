@@ -21,6 +21,11 @@ const routes = [
     "Compare procedure requirements with receiving-laboratory equipment and records. Prepare evidence-linked method transfers for expert review.",
   ],
   [
+    "/app",
+    "Interactive prototype — Benchrelay",
+    "Run a full method-transfer readiness review with fictional data: requirement mapping, capability and calibration checks, receiving-lab requests and independent expert readiness.",
+  ],
+  [
     "/privacy",
     "Privacy — Benchrelay",
     "How the Benchrelay review website and browser-local sample demo handle information.",
@@ -47,13 +52,30 @@ for (const [path, title, description] of routes) {
     () =>
       `<div id="root">${renderToString(React.createElement(App, { path }))}</div>`,
   );
-  const origin='https://benchrelay.top';
-  const pageUrl=origin+(path==='/'?'/':path);
-  html=html.replace(/<title>[\s\S]*?<\/title>/,()=>`<title>${title}</title>`);
-  html=html.replace(/<meta\s+name="description"[^>]*>/,()=>`<meta name="description" content="${description}"/>`);
-  html=html.replace(/<link\s+rel="canonical"[^>]*>/,()=>`<link rel="canonical" href="${pageUrl}"/>`);
-  for(const [key,value] of Object.entries({'og:title':title,'og:description':description,'og:url':pageUrl,'og:image':origin+'/brand/social-preview.png'})){
-    html=html.replace(new RegExp('<meta\\s+property="'+key+'"[^>]*>'),()=>`<meta property="${key}" content="${value}"/>`);
+  const origin = "https://benchrelay.top";
+  const pageUrl = origin + (path === "/" ? "/" : path);
+  html = html.replace(
+    /<title>[\s\S]*?<\/title>/,
+    () => `<title>${title}</title>`,
+  );
+  html = html.replace(
+    /<meta\s+name="description"[^>]*>/,
+    () => `<meta name="description" content="${description}"/>`,
+  );
+  html = html.replace(
+    /<link\s+rel="canonical"[^>]*>/,
+    () => `<link rel="canonical" href="${pageUrl}"/>`,
+  );
+  for (const [key, value] of Object.entries({
+    "og:title": title,
+    "og:description": description,
+    "og:url": pageUrl,
+    "og:image": origin + "/brand/social-preview.png",
+  })) {
+    html = html.replace(
+      new RegExp('<meta\\s+property="' + key + '"[^>]*>'),
+      () => `<meta property="${key}" content="${value}"/>`,
+    );
   }
   html = html.replace(
     'content="noindex, nofollow"',
@@ -102,6 +124,6 @@ await writeFile(
     "</urlset>",
 );
 console.log(
-  "Prerendered home, legal, brand and 404. Indexing: " +
+  "Prerendered home, prototype, legal, brand and 404. Indexing: " +
     (isPublic ? "PUBLIC" : "NOINDEX REVIEW"),
 );

@@ -22,6 +22,16 @@ import {
   Plus,
   CheckCircle2,
 } from "lucide-react";
+import Prototype from "./app/Prototype.jsx";
+import {
+  PrototypeCta,
+  Benefits,
+  UseCases,
+  Safeguards,
+  Plans,
+  Faq,
+} from "./Sections.jsx";
+import { hubspotConfig, validateLead, leadPayload } from "./lead.js";
 import {
   requirements,
   reviewers,
@@ -34,7 +44,9 @@ const email = "azeem@benchrelay.top";
 const nav = [
   ["Product", "/#product"],
   ["How it works", "/#how-it-works"],
-  ["Architecture", "/#architecture"],
+  ["Safeguards", "/#safeguards"],
+  ["Pricing", "/#pricing"],
+  ["FAQ", "/#faq"],
   ["Team", "/#leadership"],
 ];
 function Logo({ reversed = false }) {
@@ -71,8 +83,8 @@ function Header() {
             Contact
           </a>
         </nav>
-        <a className="button small headercta" href="/#demo">
-          Explore demo <ArrowUpRight size={16} />
+        <a className="button small headercta" href="/app">
+          Open the prototype <ArrowUpRight size={16} />
         </a>
         <button
           className="menu iconbutton"
@@ -105,6 +117,8 @@ function Footer() {
                 {n}
               </a>
             ))}
+            <a href="/app">Prototype</a>
+            <a href="/#architecture">Architecture</a>
             <a href="/brand">Brand assets</a>
             <a href="/privacy">Privacy</a>
             <a href="/terms">Terms</a>
@@ -237,8 +251,11 @@ function Home() {
             transfer for expert review.
           </p>
           <div className="cta-row">
-            <a className="button" href="#demo">
-              Explore a sample transfer <ArrowUpRight size={18} />
+            <a className="button" href="/app">
+              Try the interactive prototype <ArrowUpRight size={18} />
+            </a>
+            <a className="textlink" href="#demo">
+              Explore a sample transfer <ArrowRight size={17} />
             </a>
             <a className="textlink" href="#contact">
               Request early access <ArrowRight size={17} />
@@ -394,6 +411,8 @@ function Home() {
         </div>
       </section>
       <Demo />
+      <PrototypeCta />
+      <Benefits />
       <section className="shell scenarios section">
         <Eyebrow>DIFFERENT SITES. THE SAME NEED FOR CONTEXT.</Eyebrow>
         <h2>
@@ -432,6 +451,9 @@ function Home() {
           </p>
         </div>
       </section>
+      <UseCases />
+      <Safeguards />
+      <Plans />
       <Architecture />
       <section id="leadership" className="shell section leadership">
         <Eyebrow>THE TEAM</Eyebrow>
@@ -453,6 +475,7 @@ function Home() {
         </div>
       </section>
       <Contact />
+      <Faq />
     </>
   );
 }
@@ -1042,20 +1065,81 @@ function Detail({ requirement: r, review, change, close }) {
   );
 }
 function Contact() {
+  const hubspot = hubspotConfig();
   const [status, setStatus] = useState("");
   const [draft, setDraft] = useState("");
-  function message(form) {
-    const f = new FormData(form);
-    return `Name: ${f.get("name")}\nWork email: ${f.get("email")}\nCompany / laboratory: ${f.get("company")}\nLaboratory type: ${f.get("type")}\n\nMethod-transfer challenge:\n${f.get("challenge")}`;
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+  function fields(form) {
+    const d = new FormData(form);
+    const v = (k) => String(d.get(k) || "");
+    return {
+      name: v("name"),
+      email: v("email"),
+      company: v("company"),
+      role: v("role"),
+      type: v("type"),
+      volume: v("volume"),
+      challenge: v("challenge"),
+      consent: !!d.get("consent"),
+      marketing: !!d.get("marketing"),
+      website: v("website"),
+    };
   }
-  function submit(e) {
+  function message(form) {
+    const f = fields(form);
+    return `Name: ${f.name}\nWork email: ${f.email}\nCompany / laboratory: ${f.company}\nRole: ${f.role}\nLaboratory type: ${f.type}\nMethod transfers per year: ${f.volume}\n\nMethod-transfer challenge:\n${f.challenge}`;
+  }
+  async function submit(e) {
     e.preventDefault();
-    const body = message(e.currentTarget);
-    setDraft(body);
-    setStatus(
-      "Email draft requested. Send it through your email application, or copy the message below.",
-    );
-    window.location.href = `mailto:${email}?subject=${encodeURIComponent("Benchrelay early access enquiry")}&body=${encodeURIComponent(body)}`;
+    const form = e.currentTarget;
+    const f = fields(form);
+    setError("");
+    if (f.website) return; // honeypot: bots fill hidden fields
+    const problem =
+      validateLead(f) || (!f.type ? "Please choose your laboratory type." : "");
+    if (problem) {
+      setError(problem);
+      return;
+    }
+    if (!hubspot) {
+      const body = message(form);
+      setDraft(body);
+      setStatus(
+        "Email draft requested. Send it through your email application, or copy the message below.",
+      );
+      window.location.href = `mailto:${email}?subject=${encodeURIComponent("Benchrelay early access enquiry")}&body=${encodeURIComponent(body)}`;
+      return;
+    }
+    setBusy(true);
+    try {
+      const r = await fetch(
+        `https://api.hsforms.com/submissions/v3/integration/submit/${encodeURIComponent(hubspot.portalId)}/${encodeURIComponent(hubspot.formGuid)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            leadPayload(
+              f,
+              {
+                pageUri: location.href.split("#")[0],
+                pageName: document.title,
+              },
+              hubspot,
+            ),
+          ),
+        },
+      );
+      if (!r.ok) throw new Error(String(r.status));
+      setSent(true);
+    } catch {
+      setError(
+        `Sorry, that could not be sent. Please try again, or email ${email}.`,
+      );
+    } finally {
+      setBusy(false);
+    }
   }
   async function copy(e) {
     const form = e.currentTarget.closest("form");
@@ -1093,76 +1177,147 @@ function Contact() {
             <ArrowUpRight size={20} />
           </a>
         </div>
-        <form onSubmit={submit} className="contact-form">
-          <div className="form-pair">
+        {sent ? (
+          <div className="contact-form contact-done" role="status">
+            <h3>Thank you.</h3>
+            <p>
+              Your request has been received. We will reply by email to arrange
+              a walkthrough.
+            </p>
+          </div>
+        ) : (
+          <form onSubmit={submit} className="contact-form" noValidate>
+            <div className="form-pair">
+              <label>
+                Name
+                <input
+                  name="name"
+                  autoComplete="name"
+                  required
+                  maxLength={100}
+                />
+              </label>
+              <label>
+                Work email
+                <input
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  maxLength={200}
+                />
+              </label>
+            </div>
             <label>
-              Name
-              <input name="name" autoComplete="name" required maxLength={100} />
-            </label>
-            <label>
-              Work email
+              Company or laboratory
               <input
-                name="email"
-                type="email"
-                autoComplete="email"
+                name="company"
+                autoComplete="organization"
                 required
                 maxLength={200}
               />
             </label>
-          </div>
-          <label>
-            Company or laboratory
-            <input
-              name="company"
-              autoComplete="organization"
-              required
-              maxLength={200}
-            />
-          </label>
-          <label>
-            Laboratory type
-            <select name="type" required defaultValue="">
-              <option value="" disabled>
-                Select your laboratory type
-              </option>
-              <option>Independent testing laboratory</option>
-              <option>Industrial quality-control laboratory</option>
-              <option>Manufacturer with multiple sites</option>
-              <option>Other</option>
-            </select>
-          </label>
-          <label>
-            Current method-transfer challenge
-            <textarea name="challenge" rows="3" required maxLength={2000} />
-          </label>
-          <p className="form-note">
-            This opens an email draft. You must send it through your email
-            application. No form data is submitted to Benchrelay by this
-            website.
-          </p>
-          <div className="form-buttons">
-            <button className="button">
-              Open email draft <Mail size={17} />
-            </button>
-            <button className="textbutton" type="button" onClick={copy}>
-              Copy message
-            </button>
-          </div>
-          <p className="live-notice" role="status">
-            {status}
-          </p>
-          {draft && (
             <label>
-              Message fallback
+              Laboratory type
+              <select name="type" required defaultValue="">
+                <option value="" disabled>
+                  Select your laboratory type
+                </option>
+                <option>Independent testing laboratory</option>
+                <option>Industrial quality-control laboratory</option>
+                <option>Manufacturer with multiple sites</option>
+                <option>Other</option>
+              </select>
+            </label>
+            <div className="form-pair">
+              <label>
+                Your role
+                <input
+                  name="role"
+                  autoComplete="organization-title"
+                  maxLength={100}
+                  placeholder="Quality manager, lab lead…"
+                />
+              </label>
+              <label>
+                Method transfers per year
+                <select name="volume" defaultValue="">
+                  <option value="">Choose…</option>
+                  <option>Under 5</option>
+                  <option>5–20</option>
+                  <option>20–50</option>
+                  <option>50+</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              Current method-transfer challenge
               <textarea
-                readOnly
-                value={draft}
-                rows={8}
-                onFocus={(e) => e.target.select()}
+                name="challenge"
+                rows="3"
+                required
+                maxLength={2000}
+                placeholder="Please do not include confidential procedures or client data."
               />
             </label>
-          )}
-        </form>
+            <div className="hp" aria-hidden="true">
+              <label>
+                Leave this field empty
+                <input name="website" tabIndex={-1} autoComplete="off" />
+              </label>
+            </div>
+            <label className="consent">
+              <input type="checkbox" name="consent" />{" "}
+              <span>
+                I agree that Benchrelay may use these details to reply to this
+                request.
+              </span>
+            </label>
+            <label className="consent">
+              <input type="checkbox" name="marketing" />{" "}
+              <span>Also send me occasional product updates (optional).</span>
+            </label>
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+            <p className="form-note">
+              {hubspot
+                ? "Submitting sends these details to Benchrelay’s customer-relationship system so we can reply. See the privacy notes."
+                : "This opens an email draft. You must send it through your email application. No form data is submitted to Benchrelay by this website."}
+            </p>
+            <div className="form-buttons">
+              {hubspot ? (
+                <button className="button" disabled={busy}>
+                  {busy ? "Sending…" : "Request early access"}{" "}
+                  <Mail size={17} />
+                </button>
+              ) : (
+                <>
+                  <button className="button">
+                    Open email draft <Mail size={17} />
+                  </button>
+                  <button className="textbutton" type="button" onClick={copy}>
+                    Copy message
+                  </button>
+                </>
+              )}
+            </div>
+            <p className="live-notice" role="status">
+              {status}
+            </p>
+            {draft && (
+              <label>
+                Message fallback
+                <textarea
+                  readOnly
+                  value={draft}
+                  rows={8}
+                  onFocus={(e) => e.target.select()}
+                />
+              </label>
+            )}
+          </form>
+        )}
       </div>
     </section>
   );
@@ -1244,22 +1399,36 @@ function Legal({ type }) {
             connect to instruments, invoke live AI, or send demo entries to a
             backend.
           </p>
+          <h2>Interactive prototype</h2>
+          <p>
+            The prototype at /app also uses fictional data. So that your changes
+            survive a reload, it saves its state in your browser’s local storage
+            under the key benchrelay-prototype-v1. That data never leaves your
+            device. “Reset demo data” in the prototype, or clearing site data in
+            your browser, removes it.
+          </p>
           <h2>Contacting Benchrelay</h2>
           <p>
             The contact form can open your email application with a draft
             addressed to {email}. Nothing is sent until you send that message
             yourself. Your email provider handles the draft and delivery under
             its own terms. The copy action places your message on your device’s
-            clipboard when your browser permits it.
+            clipboard when your browser permits it. If the operator later
+            connects the form to a customer-relationship service (proposed:
+            HubSpot), submitting it sends the fields you enter, your consent
+            choices and the page address to that service so Benchrelay can
+            reply; updates are sent only if you tick the optional box. This
+            notice must be updated with the confirmed service and retention
+            before that is switched on.
           </p>
           <h2>Hosting and device information</h2>
           <p>
-            No analytics or advertising scripts are included. No cookies or
-            browser storage are used by the application. A future hosting
-            provider may process ordinary request information, such as IP
-            addresses and browser details, to serve and protect the website.
-            Provider details and applicable operator disclosures must be
-            confirmed before public launch.
+            No analytics or advertising scripts are included. No cookies are
+            used, and only the prototype uses browser storage, as described
+            above. A future hosting provider may process ordinary request
+            information, such as IP addresses and browser details, to serve and
+            protect the website. Provider details and applicable operator
+            disclosures must be confirmed before public launch.
           </p>
           <h2>Your information</h2>
           <p>
@@ -1338,6 +1507,7 @@ function NotFound() {
 }
 export default function App({ path = "/" }) {
   path = path.replace(/\/$/, "") || "/";
+  if (path === "/app") return <Prototype />;
   return (
     <>
       <a className="skip" href="#main-content">

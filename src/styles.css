@@ -2131,3 +2131,231 @@ footer {
 .summary-cells span {
   font-size: 11px;
 }
+
+/* Sections added for parity with the StudyPatch reference: prototype CTA, benefits, use cases, safeguards, plans, FAQ, lead form. */
+.prototype-cta {
+  background: var(--mint);
+  border-block: 1px solid var(--line);
+}
+.prototype-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8%;
+}
+.prototype-grid p {
+  max-width: 560px;
+  color: #4d625b;
+}
+.role-list {
+  list-style: none;
+  padding: 0;
+  margin: 22px 0 26px;
+  border-top: 1px solid #b9d3c6;
+}
+.role-list li {
+  padding: 12px 0;
+  border-bottom: 1px solid #b9d3c6;
+  font-size: 0.86rem;
+  color: #4d625b;
+}
+.role-list strong {
+  display: block;
+  color: #243432;
+  font-size: 0.92rem;
+}
+.small-note {
+  font-size: 0.75rem;
+  color: #5c6f68;
+}
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 40px;
+}
+.grid-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 28px;
+  min-width: 0;
+}
+.grid-card .mono {
+  color: var(--plum);
+}
+.grid-card h3 {
+  margin: 14px 0 10px;
+}
+.grid-card p {
+  font-size: 0.86rem;
+  color: #4d625b;
+}
+.grid-card.plain {
+  background: transparent;
+  border-width: 1px 0 0;
+  border-radius: 0;
+  padding: 22px 0 0;
+}
+.grid-card.plain h3 {
+  margin-top: 0;
+}
+.benefits,
+.usecases,
+.faq {
+  border-top: 1px solid var(--line);
+}
+.safeguards {
+  background: var(--teal);
+  color: #fff;
+}
+.safeguards .eyebrow {
+  color: #cfe4da;
+}
+.safeguards em {
+  color: #cfe4da;
+}
+.safeguards .grid-card {
+  background: #1f5c60;
+  border-color: #2f7277;
+}
+.safeguards .grid-card p,
+.safeguards .lead-note {
+  color: #cfe4da;
+}
+.safeguards .grid-card svg {
+  color: #cfe4da;
+}
+.lead-note {
+  max-width: 580px;
+  color: #4d625b;
+  margin-top: 18px;
+}
+.plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  align-items: stretch;
+  margin-top: 36px;
+}
+.plan {
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.plan.featured {
+  border-color: var(--teal);
+  box-shadow: 0 16px 36px -24px #174e5266;
+}
+.plan-tag {
+  position: absolute;
+  top: -11px;
+  left: 30px;
+  background: var(--teal);
+  color: #fff;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  padding: 3px 9px;
+  border-radius: 3px;
+}
+.plan h3 {
+  font-size: 1.7rem;
+}
+.plan-price {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--plum);
+  text-transform: uppercase;
+}
+.plan > p {
+  font-size: 0.86rem;
+  color: #4d625b;
+}
+.plan ul {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 14px;
+  font-size: 0.86rem;
+}
+.plan li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 7px 0;
+  border-top: 1px solid #e4ece8;
+}
+.plan li svg {
+  color: var(--teal);
+  margin-top: 4px;
+}
+.plan > a {
+  margin-top: auto;
+  align-self: flex-start;
+}
+.faq-list {
+  max-width: 900px;
+  margin-top: 30px;
+}
+.faq-list details {
+  border-top: 1px solid var(--line);
+  padding: 18px 0;
+}
+.faq-list details:last-child {
+  border-bottom: 1px solid var(--line);
+}
+.faq-list summary {
+  cursor: pointer;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.faq-list details p {
+  margin-top: 12px;
+  max-width: 760px;
+  color: #4d625b;
+}
+.contact-form label.consent {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+  font-weight: 400;
+}
+.contact-form label.consent input {
+  min-height: 0;
+  margin-top: 3px;
+}
+.form-error {
+  color: #a2433a;
+  font-size: 0.78rem;
+  min-height: 1em;
+}
+.contact-done h3 {
+  margin-bottom: 10px;
+}
+.hp {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+@media (max-width: 1100px) {
+  .card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 800px) {
+  .prototype-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .card-grid,
+  .plan-grid {
+    grid-template-columns: 1fr;
+  }
+}
