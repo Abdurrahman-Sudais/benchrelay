@@ -2,6 +2,7 @@ import React from "react";
 import { hydrateRoot, createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import "./styles.css";
+import "./app/app.css";
 const root = document.getElementById("root");
 const app = <App path={window.location.pathname} />;
 if (root.hasChildNodes()) hydrateRoot(root, app);
